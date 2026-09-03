@@ -16,7 +16,7 @@ const SYSTEM_PROMPTS = {
 };
 
 export default function App() {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState('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');
   const [keyVisible, setKeyVisible] = useState(false);
   const [activeTab, setActiveTab] = useState('email');
   const [inputData, setInputData] = useState('');
