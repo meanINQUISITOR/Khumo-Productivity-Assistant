@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const MODEL = 'llama-3.3-70b-versatile';
+const MODEL = 'llama3-8b-8192';
 
 const TABS = [
   { id: 'email', label: '✉️ Email Generator', placeholder: 'Describe the email you need...\ne.g. "Write a follow-up email to a client after a product demo. Keep it professional and include a call to action."' },
