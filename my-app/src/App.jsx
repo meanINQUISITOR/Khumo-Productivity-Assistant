@@ -1,12 +1,18 @@
-import React, { useState } from 'react';
-import Anthropic from '@anthropic-ai/sdk';
+import React, { useState, useEffect } from 'react';
+import { GoogleGenAI } from '@google/genai';
 
 export default function App() {
-  const [apiKey, setApiKey] = useState('');
+  // Automatically retrieves the saved key from the browser's localStorage
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || '');
   const [activeTab, setActiveTab] = useState('email');
   const [inputData, setInputData] = useState('');
   const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Saves the API key locally whenever you type or update it
+  useEffect(() => {
+    localStorage.setItem('gemini_api_key', apiKey);
+  }, [apiKey]);
 
   const systemPrompts = {
     email: 'You are an executive email assistant. Draft professional, clear, and concise emails based on user instructions.',
@@ -16,7 +22,7 @@ export default function App() {
 
   const handleGenerate = async () => {
     if (!apiKey) {
-      alert('Please enter your Anthropic API Key first.');
+      alert('Please enter your Gemini API Key first.');
       return;
     }
     if (!inputData) {
@@ -28,22 +34,16 @@ export default function App() {
     setOutput('');
 
     try {
-      const anthropic = new Anthropic({
-        apiKey: apiKey,
-        dangerouslyAllowBrowser: true,
+      const ai = new GoogleGenAI({ apiKey: apiKey });
+
+      const responseStream = await ai.models.generateContentStream({
+        model: 'gemini-2.5-flash',
+        contents: `${systemPrompts[activeTab]}\n\nTask details:\n${inputData}`,
       });
 
-      const stream = await anthropic.messages.create({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 1000,
-        system: systemPrompts[activeTab],
-        messages: [{ role: 'user', content: inputData }],
-        stream: true,
-      });
-
-      for await (const chunk of stream) {
-        if (chunk.type === 'content_block_delta') {
-          setOutput((prev) => prev + chunk.delta.text);
+      for await (const chunk of responseStream) {
+        if (chunk.text) {
+          setOutput((prev) => prev + chunk.text);
         }
       }
     } catch (error) {
@@ -58,14 +58,15 @@ export default function App() {
       <h1>Khumo Productivity Assistant</h1>
       
       <div style={{ marginBottom: '20px' }}>
-        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Anthropic API Key:</label>
+        <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}>Gemini API Key:</label>
         <input 
           type="password" 
           value={apiKey} 
           onChange={(e) => setApiKey(e.target.value)} 
-          placeholder="sk-ant-..." 
+          placeholder="AIzaSy..." 
           style={{ width: '100%', padding: '10px', boxSizing: 'border-box' }}
         />
+        <small style={{ color: '#666' }}>Your key is stored in browser memory so you don't have to re-enter it.</small>
       </div>
 
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
